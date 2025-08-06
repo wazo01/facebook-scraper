@@ -1,4 +1,5 @@
-const puppeteer = require('puppeteer');      // ✔️ Required for scraping
+const chromium = require("chrome-aws-lambda");
+const puppeteer = require("puppeteer-core");
 const fs = require('fs');                    // ✔️ For writing results.json
 const express = require('express');          // ✔️ For server
 
@@ -14,9 +15,13 @@ app.get("/scrape", async (req, res) => {
   try {
     console.log("🔍 Starting scrape...");
 
-    const browser = await puppeteer.launch({
-      headless: "new",
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+ const browser = await puppeteer.launch({
+  args: chromium.args,
+  defaultViewport: chromium.defaultViewport,
+  executablePath: await chromium.executablePath,
+  headless: chromium.headless,
+});
+
     });
 
     const page = await browser.newPage();

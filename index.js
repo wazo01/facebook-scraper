@@ -13,9 +13,10 @@ app.get("/scrape", async (req, res) => {
   try {
     console.log("🔍 Starting scrape...");
 
-    const browser = await puppeteer.launch({
-      headless: "new",
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+const browser = await puppeteer.connect({
+  browserWSEndpoint: `wss://chrome.browserless.io?token=YOUR_API_KEY`
+});
+
     });
 
     const page = await browser.newPage();

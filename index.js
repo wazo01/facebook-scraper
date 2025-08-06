@@ -27,7 +27,8 @@ app.get("/scrape", async (req, res) => {
     await page.type('input[placeholder="Search Marketplace"]', "iPhone 15 Pro Max");
     await page.keyboard.press("Enter");
 
-    await page.waitForTimeout(8000);
+    await new Promise(resolve => setTimeout(resolve, 8000));
+
 
     const listings = await page.evaluate(() => {
       const items = [];

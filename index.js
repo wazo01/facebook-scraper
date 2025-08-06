@@ -1,4 +1,11 @@
-(async () => {
+const express = require("express");
+const fs = require("fs");
+const puppeteer = require("puppeteer");
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get("/scrape", async (req, res) => {
   try {
     const browser = await puppeteer.launch({
       headless: "new",
@@ -33,11 +40,20 @@
     });
 
     await browser.close();
+
     fs.writeFileSync("results.json", JSON.stringify(listings, null, 2));
     console.log("✅ Scrape successful. Results saved.");
+    res.json({ message: "Scrape completed successfully." });
   } catch (err) {
     console.error("❌ Scraper failed:", err.message);
+    res.status(500).json({ error: err.message });
   }
-})();
+});
 
+// Allow access to results.json directly in browser
+app.use(express.static('.'));
 
+// Start the server
+app.listen(PORT, () => {
+  console.log(`✅ Server is running on http://localhost:${PORT}`);
+});

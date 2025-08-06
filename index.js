@@ -5,15 +5,18 @@ const puppeteer = require("puppeteer");
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// ✅ Serve the results.json file publicly
-app.use(express.static(__dirname));
-
-// ✅ Scraper endpoint
 app.get("/scrape", async (req, res) => {
   try {
     const browser = await puppeteer.launch({
-      headless: "new",
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--disable-gpu",
+        "--window-size=1920x1080",
+      ],
     });
 
     const page = await browser.newPage();
@@ -24,8 +27,7 @@ app.get("/scrape", async (req, res) => {
     await page.waitForSelector('input[placeholder="Search Marketplace"]');
     await page.type('input[placeholder="Search Marketplace"]', "iPhone 15 Pro Max");
     await page.keyboard.press("Enter");
-
-    await page.waitForTimeout(8000); // wait for results to load
+    await page.waitForTimeout(8000);
 
     const listings = await page.evaluate(() => {
       const items = [];
@@ -35,6 +37,7 @@ app.get("/scrape", async (req, res) => {
         const url = node.href;
         const priceMatch = title.match(/£(\d+)/);
         const price = priceMatch ? parseInt(priceMatch[1]) : null;
+
         if (price !== null && price <= 400) {
           items.push({ title, url, price });
         }
@@ -44,14 +47,22 @@ app.get("/scrape", async (req, res) => {
 
     await browser.close();
     fs.writeFileSync("results.json", JSON.stringify(listings, null, 2));
-    res.json({ status: "✅ Scrape complete", itemsFound: listings.length });
-  } catch (err) {
-    console.error("❌ Scraper failed:", err.message);
-    res.status(500).json({ error: err.message });
+    res.json({ success: true, listings });
+  } catch (error) {
+    console.error("❌ Scraper failed:", error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 
-// ✅ Start the server
+app.get("/results.json", (req, res) => {
+  try {
+    const data = fs.readFileSync("results.json", "utf-8");
+    res.type("application/json").send(data);
+  } catch {
+    res.status(404).json({ error: "File not found or unreadable" });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });

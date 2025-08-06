@@ -1,18 +1,22 @@
-const express = require('express');
-const fs = require('fs');
+const puppeteer = require("puppeteer");
+const fs = require("fs");
+const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.get('/results.json', (req, res) => {
-  fs.readFile('results.json', (err, data) => {
-    if (err) {
-      return res.status(500).json({ error: 'File not found or unreadable' });
-    }
-    res.setHeader('Content-Type', 'application/json');
-    res.send(data);
+(async () => {
+  const browser = await puppeteer.launch({
+    headless: "new",
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
-});
 
-app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-});
+  const page = await browser.newPage();
+
+  console.log("Opening Facebook Marketplace...");
+  await page.goto("https://www.facebook.com/marketplace/", {
+    waitUntil: "domcontentloaded",
+  });
+
+  await page.waitForSelector('input[placeholder="Search Marketplace"]');
+  console.log("Searching for iPhone 15 Pro Max...");
+  await page.type('input[placeholder="Search Marketp]()

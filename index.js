@@ -14,7 +14,7 @@ app.get("/scrape", async (req, res) => {
     console.log("🔍 Starting scrape...");
 
 const browser = await puppeteer.connect({
-  browserWSEndpoint: `wss://chrome.browserless.io?token=YOUR_API_KEY`
+  browserWSEndpoint: `wss://chrome.browserless.io?token=2SosroBHbe0gzA2b0d0d11f842ccca248d0f1dada432a698d`
 });
 
     });

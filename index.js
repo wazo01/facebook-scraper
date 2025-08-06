@@ -27,7 +27,8 @@ app.get("/scrape", async (req, res) => {
     await page.waitForSelector('input[placeholder="Search Marketplace"]');
     await page.type('input[placeholder="Search Marketplace"]', "iPhone 15 Pro Max");
     await page.keyboard.press("Enter");
-    await page.waitForTimeout(8000);
+
+    await page.waitForTimeout(8000); // Wait for search results
 
     const listings = await page.evaluate(() => {
       const items = [];
@@ -37,7 +38,6 @@ app.get("/scrape", async (req, res) => {
         const url = node.href;
         const priceMatch = title.match(/£(\d+)/);
         const price = priceMatch ? parseInt(priceMatch[1]) : null;
-
         if (price !== null && price <= 400) {
           items.push({ title, url, price });
         }
@@ -46,11 +46,12 @@ app.get("/scrape", async (req, res) => {
     });
 
     await browser.close();
+
     fs.writeFileSync("results.json", JSON.stringify(listings, null, 2));
     res.json({ success: true, listings });
-  } catch (error) {
-    console.error("❌ Scraper failed:", error.message);
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    console.error("❌ Scraper error:", err);
+    res.status(500).json({ error: "Scraping failed" });
   }
 });
 

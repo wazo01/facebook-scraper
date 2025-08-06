@@ -5,9 +5,10 @@ const puppeteer = require("puppeteer");
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Serve the static file 'results.json'
+// ✅ Serve the results.json file publicly
 app.use(express.static(__dirname));
 
+// ✅ Scraper endpoint
 app.get("/scrape", async (req, res) => {
   try {
     const browser = await puppeteer.launch({
@@ -23,7 +24,8 @@ app.get("/scrape", async (req, res) => {
     await page.waitForSelector('input[placeholder="Search Marketplace"]');
     await page.type('input[placeholder="Search Marketplace"]', "iPhone 15 Pro Max");
     await page.keyboard.press("Enter");
-    await page.waitForTimeout(8000);
+
+    await page.waitForTimeout(8000); // wait for results to load
 
     const listings = await page.evaluate(() => {
       const items = [];
@@ -49,6 +51,8 @@ app.get("/scrape", async (req, res) => {
   }
 });
 
+// ✅ Start the server
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
+

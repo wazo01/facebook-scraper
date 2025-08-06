@@ -1,9 +1,10 @@
-const express = require("express");
-const fs = require("fs");
-const puppeteer = require("puppeteer-core");
+const puppeteer = require('puppeteer');      // ✔️ Required for scraping
+const fs = require('fs');                    // ✔️ For writing results.json
+const express = require('express');          // ✔️ For server
 
 const app = express();
 const PORT = process.env.PORT || 10000;
+
 
 app.get("/", (req, res) => {
   res.send("✅ Facebook scraper server is running.");

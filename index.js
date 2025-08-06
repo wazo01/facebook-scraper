@@ -1,22 +1,21 @@
 const express = require("express");
 const fs = require("fs");
-const puppeteer = require("puppeteer");
+const puppeteer = require("puppeteer-core");
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 
+app.get("/", (req, res) => {
+  res.send("✅ Facebook scraper server is running.");
+});
+
 app.get("/scrape", async (req, res) => {
   try {
+    console.log("🔍 Starting scrape...");
+
     const browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-accelerated-2d-canvas",
-        "--disable-gpu",
-        "--window-size=1920x1080",
-      ],
+      headless: "new",
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
 
     const page = await browser.newPage();
@@ -28,7 +27,7 @@ app.get("/scrape", async (req, res) => {
     await page.type('input[placeholder="Search Marketplace"]', "iPhone 15 Pro Max");
     await page.keyboard.press("Enter");
 
-    await page.waitForTimeout(8000); // Wait for search results
+    await page.waitForTimeout(8000);
 
     const listings = await page.evaluate(() => {
       const items = [];
@@ -38,6 +37,7 @@ app.get("/scrape", async (req, res) => {
         const url = node.href;
         const priceMatch = title.match(/£(\d+)/);
         const price = priceMatch ? parseInt(priceMatch[1]) : null;
+
         if (price !== null && price <= 400) {
           items.push({ title, url, price });
         }
@@ -48,23 +48,22 @@ app.get("/scrape", async (req, res) => {
     await browser.close();
 
     fs.writeFileSync("results.json", JSON.stringify(listings, null, 2));
-    res.json({ success: true, listings });
+    console.log("✅ Scrape successful. Results saved.");
+    res.json({ status: "success", listings });
   } catch (err) {
-    console.error("❌ Scraper error:", err);
-    res.status(500).json({ error: "Scraping failed" });
+    console.error("❌ Scraper failed:", err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
 app.get("/results.json", (req, res) => {
-  try {
-    const data = fs.readFileSync("results.json", "utf-8");
-    res.type("application/json").send(data);
-  } catch {
+  if (fs.existsSync("results.json")) {
+    res.sendFile(__dirname + "/results.json");
+  } else {
     res.status(404).json({ error: "File not found or unreadable" });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
-

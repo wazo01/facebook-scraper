@@ -1,7 +1,7 @@
 FROM node:20-slim
 
 RUN apt-get update && apt-get install -y \
-  wget \
+  chromium \
   ca-certificates \
   fonts-liberation \
   libappindicator3-1 \
@@ -20,6 +20,8 @@ RUN apt-get update && apt-get install -y \
   xdg-utils \
   --no-install-recommends && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
+
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 WORKDIR /app
 COPY package*.json ./
